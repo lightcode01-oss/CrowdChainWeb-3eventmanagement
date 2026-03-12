@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import API from '../api';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL;
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { useWallet } from '../context/WalletContext';
 import { PlusCircle, Shield, CheckCircle, AlertCircle, Maximize, Loader2 } from 'lucide-react';
@@ -19,7 +21,7 @@ const AdminDashboard = () => {
 
   const fetchEvents = async () => {
     try {
-      const res = await API.get('/api/events');
+      const res = await axios.get(`${API_URL}/api/events`);
       setEvents(res.filter(e => e.adminWallet.toLowerCase() === address?.toLowerCase()));
     } catch (err) {
       console.error(err);
@@ -30,7 +32,7 @@ const AdminDashboard = () => {
     e.preventDefault();
     if (!address) return alert('Connect wallet first!');
     try {
-      await API.post('/api/events', { ...form, adminWallet: address });
+      await axios.post(`${API_URL}/api/events`, { ...form, adminWallet: address });
       alert('Event Created Successfully!');
       setForm({ eventName: '', description: '', date: '', location: '', maxCapacity: '', ticketPrice: '' });
       fetchEvents();
@@ -47,7 +49,7 @@ const AdminDashboard = () => {
       setVerifying(true);
       try {
         const parsedData = JSON.parse(text);
-        const res = await API.post('/api/tickets/verify', { ticketId: parsedData.ticketId });
+        const res = await axios.post(`${API_URL}/api/tickets/verify`, { ticketId: parsedData.ticketId });
         setScanResult({ success: true, message: res.data.message });
       } catch (err) {
         setScanResult({ success: false, message: err.response?.data?.error || 'Invalid or Scanned Ticket' });

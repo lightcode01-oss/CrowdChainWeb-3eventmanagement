@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import API from '../api';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL;
 import { Calendar, MapPin, Users, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -14,7 +16,7 @@ const EventList = () => {
 
   const fetchEvents = async () => {
     try {
-      const res = await API.get('/api/events');
+      const res = await axios.get(`${API_URL}/api/events`);
       setEvents(res.data);
     } catch (err) {
       console.error(err);
