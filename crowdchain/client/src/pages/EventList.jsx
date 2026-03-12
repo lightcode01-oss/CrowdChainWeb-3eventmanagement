@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import API from '../api';
 import { Calendar, MapPin, Users, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -14,7 +14,7 @@ const EventList = () => {
 
   const fetchEvents = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/events');
+      const res = await API.get('/api/events');
       setEvents(res.data);
     } catch (err) {
       console.error(err);

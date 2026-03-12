@@ -7,7 +7,14 @@ const apiRoutes = require('./src/routes/api');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: [
+      "http://localhost:5173",
+      "https://crowdchain.vercel.app",
+      "https://event-manegement-with-vlockchain.vercel.app"
+    ],
+    credentials: true
+}));
 app.use(express.json());
 
 // Connect DB (Now CSV)

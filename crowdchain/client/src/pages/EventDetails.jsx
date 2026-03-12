@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from '../api';
 import { useWallet } from '../context/WalletContext';
 import { motion } from 'framer-motion';
 import { Ticket, Users, MapPin, Calendar, ExternalLink, Activity, ShieldCheck } from 'lucide-react';
@@ -22,7 +22,7 @@ const EventDetails = () => {
 
   const fetchEventDetails = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/events/${id}`);
+      const res = await API.get(`/api/events/${id}`);
       setData(res.data);
     } catch (err) {
       console.error(err);
@@ -41,7 +41,7 @@ const EventDetails = () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
       const simulatedTxHash = "0x" + Math.random().toString(16).slice(2, 42);
 
-      const res = await axios.post('http://localhost:5000/api/tickets/buy', {
+      const res = await API.post('/api/tickets/buy', {
         eventId: id,
         ownerWallet: address,
         txHash: simulatedTxHash

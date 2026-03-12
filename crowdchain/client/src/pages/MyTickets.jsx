@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import API from '../api';
 import { useWallet } from '../context/WalletContext';
 import { motion } from 'framer-motion';
 import { QrCode, Ticket as TicketIcon } from 'lucide-react';
@@ -15,7 +15,7 @@ const MyTickets = () => {
 
   const fetchTickets = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/tickets/user/${address}`);
+      const res = await API.get(`/api/tickets/user/${address}`);
       setTickets(res.data);
     } catch (err) {
       console.error(err);
