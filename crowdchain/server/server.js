@@ -11,7 +11,8 @@ app.use(cors({
     origin: [
       "http://localhost:5173",
       "https://crowdchain.vercel.app",
-      "https://event-manegement-with-vlockchain.vercel.app"
+      "https://event-manegement-with-vlockchain.vercel.app",
+      "https://crowd-chain-web-3eventmanagement-298r-lgqfb67hr.vercel.app"
     ],
     credentials: true
 }));
