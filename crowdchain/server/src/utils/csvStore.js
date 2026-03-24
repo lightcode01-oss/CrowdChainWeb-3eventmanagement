@@ -41,4 +41,15 @@ const updateRecord = (modelName, idField, idValue, updates) => {
   return null;
 };
 
-module.exports = { readAll, writeAll, insertRecord, updateRecord };
+const deleteRecord = (modelName, idField, idValue) => {
+  let data = readAll(modelName);
+  const initialLength = data.length;
+  data = data.filter(req => req[idField] !== String(idValue));
+  if (data.length !== initialLength) {
+    writeAll(modelName, data);
+    return true;
+  }
+  return false;
+};
+
+module.exports = { readAll, writeAll, insertRecord, updateRecord, deleteRecord };

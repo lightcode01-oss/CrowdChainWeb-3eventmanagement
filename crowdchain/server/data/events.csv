@@ -1,3 +1,2 @@
-id,eventName,description,date,location,maxCapacity,ticketPrice,adminWallet,createdAt
-1b7ca13c-a3a4-493f-a12c-bd6539c25a92,ai summit,ai describe,2026-03-11,online,10,0.00,0x14916e9dd4f1d99e32c1c72617b77822cd06990c,2026-03-10T12:20:58.667Z
-5826a0fd-b79e-4617-912c-47b0124cc514,meeting ,meeting on ai,2026-03-10,online,5,0.00,0x14916e9dd4f1d99e32c1c72617b77822cd06990c,2026-03-10T12:22:52.918Z
+id,eventName,description,date,location,maxCapacity,ticketPrice,adminWallet,createdAt,ipfsHash
+0a3cf3e5-ffc1-4a04-9662-45a21dc59b81,ai ,ai discuss,2026-03-18,online,10,0.00,0xbb5dcf42696228f7070681e6137dc0ed9541be1b,2026-03-18T14:32:11.380Z,bafkreibluegd6ubqdanfcxuuh636fa3rcna3277d54lu4pevyygmxz5rne

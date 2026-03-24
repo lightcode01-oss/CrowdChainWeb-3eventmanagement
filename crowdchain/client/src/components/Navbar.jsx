@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Menu, X, Ticket, ShieldHalf, CalendarDays, KeyRound } from 'lucide-react';
 
 const Navbar = () => {
-  const { address, connectWallet, isConnecting } = useWallet();
+  const { address, token, connectWallet, disconnectWallet, isConnecting } = useWallet();
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
@@ -51,12 +51,22 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div>
-          {address ? (
-            <div className="glass px-4 py-2 rounded-full border border-white/10 text-sm font-medium text-blue-300 flex items-center gap-2 shadow-inner shadow-blue-500/10">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-              {address.slice(0, 6)}...{address.slice(-4)}
-            </div>
+        <div className="flex items-center gap-4">
+          {address && token ? (
+            <>
+              <div className="glass px-4 py-2 rounded-full border border-white/10 text-sm font-medium text-blue-300 flex items-center gap-2 shadow-inner shadow-blue-500/10">
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                {address.slice(0, 6)}...{address.slice(-4)}
+              </div>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={disconnectWallet} 
+                className="bg-red-600/80 hover:bg-red-500 text-white px-5 py-2 rounded-full text-sm font-medium transition-all shadow-[0_0_15px_rgba(239,68,68,0.3)] flex items-center gap-2"
+              >
+                Logout
+              </motion.button>
+            </>
           ) : (
             <motion.button 
               whileHover={{ scale: 1.05 }}
@@ -65,7 +75,7 @@ const Navbar = () => {
               disabled={isConnecting}
               className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-full font-medium transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] disabled:opacity-70 flex items-center gap-2"
             >
-              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+              {isConnecting ? 'Authenticating...' : 'Login / Connect'}
             </motion.button>
           )}
         </div>

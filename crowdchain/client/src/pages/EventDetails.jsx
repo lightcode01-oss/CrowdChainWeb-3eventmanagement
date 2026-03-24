@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { ethers } from 'ethers';
 
 const API_URL = import.meta.env.VITE_API_URL;
 import { useWallet } from '../context/WalletContext';
@@ -10,7 +11,7 @@ import { Ticket, Users, MapPin, Calendar, ExternalLink, Activity, ShieldCheck } 
 const EventDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { address } = useWallet();
+  const { address, token, signer } = useWallet();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState(false);
@@ -34,25 +35,36 @@ const EventDetails = () => {
   };
 
   const buyTicket = async () => {
-    if (!address) return alert('Please connect your metamask wallet first!');
+    if (!address || !token || !signer) return alert('Please connect your metamask wallet and log in first!');
     if (data.crowd.peopleInside >= data.event.maxCapacity) return alert('Event is sold out!');
 
     setBuying(true);
     try {
-      // Simulate blockchain tx delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const simulatedTxHash = "0x" + Math.random().toString(16).slice(2, 42);
+      // 1. Send real ETH using ethers.js
+      const priceInWei = ethers.parseEther(data.event.ticketPrice.toString());
+      
+      const tx = await signer.sendTransaction({
+        to: data.event.adminWallet,
+        value: priceInWei
+      });
+      
+      // Wait for blockchain confirmation
+      await tx.wait();
 
-      const res = await axios.post(`${API_URL}/api/tickets/buy`, {
+      // 2. Call backend to mint ticket and record txHash into Pinata IPFS
+      await axios.post(`${API_URL}/api/tickets/buy`, {
         eventId: id,
         ownerWallet: address,
-        txHash: simulatedTxHash
+        txHash: tx.hash
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-
-      alert('Ticket purchased successfully!');
+      
+      alert('Web3 Transaction Complete! Ticket securely purchased using ETH.');
       navigate('/my-tickets');
     } catch (err) {
-      alert(err.response?.data?.error || 'Purchase failed');
+      console.error(err);
+      alert('Transaction failed: ' + (err.reason || err.message));
     } finally {
       setBuying(false);
     }
@@ -89,9 +101,34 @@ const EventDetails = () => {
                 <p className="font-semibold text-white">{event.location}</p>
               </div>
             </div>
+            <div className="flex items-center gap-4 sm:col-span-2">
+              <div className="w-12 h-12 rounded-full glass flex items-center justify-center text-green-400"><Users className="w-5 h-5"/></div>
+              <div className="overflow-hidden">
+                <p className="text-sm text-gray-400">Event Creator</p>
+                <p className="font-semibold text-white font-mono text-xs sm:text-sm truncate">{event.adminWallet}</p>
+              </div>
+            </div>
           </div>
+          
+          {event.ipfsHash && (
+            <div className="mt-6 bg-white/5 p-4 rounded-xl border border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                  <ExternalLink className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Verified on IPFS</p>
+                  <p className="text-xs text-gray-500 truncate w-48">{event.ipfsHash}</p>
+                </div>
+              </div>
+              <a href={`https://orange-large-frog-571.mypinata.cloud/ipfs/${event.ipfsHash}?pinataGatewayToken=IdcZ3d9KzO46VQT8fz8W6PKgIS6bkQmGL6sX7WyS7P8OLhOz6DRykoGDDWzkTAn_`} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-sm font-medium hover:text-blue-300">
+                View Metadata
+              </a>
+            </div>
+          )}
         </div>
       </div>
+
 
       {/* Right Column - Booking Card */}
       <div className="space-y-6">

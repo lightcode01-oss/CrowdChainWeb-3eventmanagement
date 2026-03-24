@@ -4,7 +4,8 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL;
 import { useWallet } from '../context/WalletContext';
 import { motion } from 'framer-motion';
-import { QrCode, Ticket as TicketIcon } from 'lucide-react';
+import { QrCode, Ticket as TicketIcon, ExternalLink } from 'lucide-react';
+
 
 const MyTickets = () => {
   const { address } = useWallet();
@@ -80,7 +81,13 @@ const MyTickets = () => {
                 <div className="mt-8">
                   <p className="text-gray-500 text-xs mb-1">Blockchain ID</p>
                   <p className="text-blue-300 text-xs font-mono truncate">{ticket.ticketId}</p>
+                  {ticket.ipfsHash && (
+                    <a href={`https://orange-large-frog-571.mypinata.cloud/ipfs/${ticket.ipfsHash}?pinataGatewayToken=IdcZ3d9KzO46VQT8fz8W6PKgIS6bkQmGL6sX7WyS7P8OLhOz6DRykoGDDWzkTAn_`} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-pink-400 hover:text-pink-300 bg-pink-500/10 px-3 py-1.5 rounded-full border border-pink-500/20 transition-all">
+                      <ExternalLink className="w-3 h-3" /> View on Pinata IPFS
+                    </a>
+                  )}
                 </div>
+
               </div>
               
               {/* QR Code Slice */}

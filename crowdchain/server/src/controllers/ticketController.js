@@ -2,6 +2,8 @@ const crypto = require('crypto');
 const uuidv4 = () => crypto.randomUUID();
 const QRCode = require('qrcode');
 const { readAll, insertRecord, updateRecord } = require('../utils/csvStore');
+const { pinJSONToIPFS } = require('../utils/pinata');
+
 
 // POST /tickets/buy
 exports.buyTicket = async (req, res) => {
@@ -35,7 +37,22 @@ exports.buyTicket = async (req, res) => {
       createdAt: new Date().toISOString()
     };
 
+    // Upload ticket metadata to IPFS
+    const ipfsHash = await pinJSONToIPFS({
+      ticketId,
+      eventId,
+      eventName: event.eventName,
+      ownerWallet,
+      purchaseDate: newTicket.createdAt,
+      transactionHash: txHash
+    });
+    
+    if (ipfsHash) {
+      newTicket.ipfsHash = ipfsHash;
+    }
+
     insertRecord('tickets', newTicket);
+
 
     res.status(201).json({ message: 'Ticket purchased successfully', ticket: { ...newTicket, _id: newTicket.id } });
   } catch (err) {
@@ -82,6 +99,10 @@ exports.verifyTicket = async (req, res) => {
 
     const events = readAll('events');
     const event = events.find(e => e.id === ticket.eventId);
+
+    if (!req.user || req.user.walletAddress.toLowerCase() !== event.adminWallet.toLowerCase()) {
+      return res.status(403).json({ error: 'Unauthorized radar: Only the creator of this event can scan its tickets.' });
+    }
 
     // Check crowd capacity
     const crowds = readAll('crowds');

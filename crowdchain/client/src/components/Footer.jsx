@@ -20,7 +20,7 @@ const Footer = () => {
           <Heart className="w-4 h-4 text-pink-500 fill-pink-500 animate-pulse" />
           <span>by</span>
           <a href="#" className="font-semibold text-white hover:text-blue-400 transition-colors">
-            Abhinav Dash
+            TechMagnitude Team
           </a>
         </div>
 

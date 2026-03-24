@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const uuidv4 = () => crypto.randomUUID();
-const { readAll, insertRecord } = require('../utils/csvStore');
+const { readAll, insertRecord, deleteRecord } = require('../utils/csvStore');
+const { pinJSONToIPFS } = require('../utils/pinata');
+
 
 // GET /events
 exports.getEvents = async (req, res) => {
@@ -50,6 +52,12 @@ exports.createEvent = async (req, res) => {
       createdAt: new Date().toISOString()
     };
 
+    // Upload to IPFS via Pinata
+    const ipfsHash = await pinJSONToIPFS(newEvent);
+    if (ipfsHash) {
+      newEvent.ipfsHash = ipfsHash;
+    }
+
     insertRecord('events', newEvent);
 
     // Create corresponding Crowd tracker
@@ -63,6 +71,26 @@ exports.createEvent = async (req, res) => {
     insertRecord('crowds', newCrowd);
 
     res.status(201).json({ ...newEvent, _id: newEvent.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// DELETE /events/:id
+exports.deleteEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const events = readAll('events');
+    const event = events.find(e => e.id === id);
+    
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+    
+    if (req.user && req.user.walletAddress.toLowerCase() !== event.adminWallet.toLowerCase()) {
+      return res.status(403).json({ error: 'Unauthorized to delete this event' });
+    }
+
+    deleteRecord('events', 'id', id);
+    res.json({ message: 'Event deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

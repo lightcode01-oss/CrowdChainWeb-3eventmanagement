@@ -4,7 +4,7 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL;
 import { Scanner } from '@yudiel/react-qr-scanner';
 import { useWallet } from '../context/WalletContext';
-import { PlusCircle, Shield, CheckCircle, AlertCircle, Maximize, Loader2 } from 'lucide-react';
+import { PlusCircle, Shield, CheckCircle, AlertCircle, Maximize, Loader2, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const AdminDashboard = () => {
@@ -16,13 +16,15 @@ const AdminDashboard = () => {
   const [scannerOpen, setScannerOpen] = useState(false);
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    if (address) {
+      fetchEvents();
+    }
+  }, [address]);
 
   const fetchEvents = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/events`);
-      setEvents(res.filter(e => e.adminWallet.toLowerCase() === address?.toLowerCase()));
+      setEvents(res.data.filter(e => e?.adminWallet?.toLowerCase() === address?.toLowerCase()));
     } catch (err) {
       console.error(err);
     }
@@ -37,7 +39,20 @@ const AdminDashboard = () => {
       setForm({ eventName: '', description: '', date: '', location: '', maxCapacity: '', ticketPrice: '' });
       fetchEvents();
     } catch (err) {
-      alert('Error creating event.');
+      alert('Error creating event: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) return;
+    try {
+      const token = localStorage.getItem('jwtToken');
+      await axios.delete(`${API_URL}/api/events/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchEvents();
+    } catch (err) {
+      alert('Error deleting event: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -48,8 +63,11 @@ const AdminDashboard = () => {
     if (text && !verifying) {
       setVerifying(true);
       try {
+        const token = localStorage.getItem('jwtToken');
         const parsedData = JSON.parse(text);
-        const res = await axios.post(`${API_URL}/api/tickets/verify`, { ticketId: parsedData.ticketId });
+        const res = await axios.post(`${API_URL}/api/tickets/verify`, { ticketId: parsedData.ticketId }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setScanResult({ success: true, message: res.data.message });
       } catch (err) {
         setScanResult({ success: false, message: err.response?.data?.error || 'Invalid or Scanned Ticket' });
@@ -92,7 +110,7 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Date</label>
-              <input type="date" className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-blue-500 transition-colors" required onChange={e => setForm({...form, date: e.target.value})} value={form.date} />
+              <input type="date" min={new Date().toISOString().split('T')[0]} className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-blue-500 transition-colors" required onChange={e => setForm({...form, date: e.target.value})} value={form.date} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Location</label>
@@ -164,8 +182,11 @@ const AdminDashboard = () => {
                     <h4 className="font-bold truncate max-w-[200px]">{e.eventName}</h4>
                     <p className="text-xs text-gray-400">{new Date(e.date).toLocaleDateString()} • {e.ticketPrice} ETH</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex items-center justify-end gap-3">
                     <span className="bg-blue-500/20 text-blue-400 text-xs py-1 px-3 rounded-full font-medium">Active</span>
+                    <button type="button" onClick={() => handleDelete(e._id)} className="text-red-400 hover:text-red-300 p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors" title="Delete Event">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))}
